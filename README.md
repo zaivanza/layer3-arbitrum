@@ -10,4 +10,4 @@
 4. подписываемся на нас : https://t.me/hodlmodeth
 5. для тех, кто не в танке. запускать советую с vscode / pycharm. 
 
->>> по всем вопросам в наш чат [ https://t.me/code_hodlmodeth ]
+> по всем вопросам в наш чат [ https://t.me/code_hodlmodeth ]
