@@ -569,6 +569,7 @@ def web_dopex_farm(privatekey, gasLimit):
 
 
 def change_proxy():
+    global i
     cprint('Ошибка, меняю прокси', 'red')
     i += 1
     proxy_servers['https'] = http_proxy[i]
