@@ -6,6 +6,13 @@ import json
 from termcolor import cprint
 
 
+min_time = 10 
+max_time = 15
+#рандомная задержка от min_time до max_time (в секундах)
+
+
+
+
 def inch_swap_vst(privatekey):
     try:
         
@@ -15,9 +22,10 @@ def inch_swap_vst(privatekey):
             return price/ int("".join((["1"]+ ["0"]*decimal)))
         def get_api_call_data(url):
             try: 
-                call_data = requests.get(url)
+                call_data = requests.get(url, proxies = proxy_servers)
             except Exception as e:
                 print(e)
+                change_proxy()
                 return get_api_call_data(url)
             try:
                 api_data = call_data.json()
@@ -59,10 +67,11 @@ def inch_swap_usdc(privatekey):
         def decimalToInt(price, decimal):
             return price/ int("".join((["1"]+ ["0"]*decimal)))
         def get_api_call_data(url):
-            try: 
-                call_data = requests.get(url)
+            try:
+                call_data = requests.get(url, proxies = proxy_servers)
             except Exception as e:
                 print(e)
+                change_proxy()
                 return get_api_call_data(url)
             try:
                 api_data = call_data.json()
@@ -558,6 +567,28 @@ def web_dopex_farm(privatekey, gasLimit):
     add_farm()
 
 
+
+def change_proxy():
+    global i
+    cprint('Ошибка, меняю прокси', 'red')
+    i += 1
+    proxy_servers['https'] = http_proxy[i]
+
+with open('proxy.txt', 'r') as file:
+    i = 0
+    proxys = file.readlines()
+    http_proxy = []
+    for item in proxys:
+        proxy = (item[0 : item.index('@')])
+        username = (item[item.index('@') + 1 : abs(item[::-1].index(':') + 1 - len(item))])
+        password = (item[abs(item[::-1].index(':') - len(item)) : len(item)])
+        http_proxy.append('http://' + username + ':' + password + '@' + proxy + '/')
+    proxy_servers = {
+        'https': http_proxy[i]
+    }
+    print(http_proxy[i])
+
+
 if __name__ == "__main__":
 
     cprint(f'\n============================================= hodlmod.eth =============================================', 'cyan')
@@ -573,26 +604,28 @@ if __name__ == "__main__":
 
         cprint(f'\n=============== start : {privatekey} ===============', 'white')
 
-        inch_swap_vst(privatekey)
-        time.sleep(random.randint(2, 4))
-        inch_swap_usdc(privatekey)
-        time.sleep(random.randint(3, 4))
-        web_gmx_buy_glb(privatekey, gasLimit)
-        time.sleep(random.randint(3, 4))
-        web_balancer(privatekey, gasLimit)
-        time.sleep(random.randint(3, 4))
-        web_vst_stake(privatekey, gasLimit)
-        time.sleep(random.randint(3, 4))
-        web_radiant(privatekey, gasLimit)
-        time.sleep(random.randint(3, 4))
-        web_sushiswap(privatekey, gasLimit, '0x6C2C06790b3E3E3c38e12Ee22F8183b37a13EE55', 'GPX')
-        time.sleep(random.randint(3, 4))
-        web_sushiswap(privatekey, gasLimit, '0x539bdE0d7Dbd336b79148AA742883198BBF60342', 'MAGIC')
-        time.sleep(random.randint(3, 4))
-        web_sushiswap(privatekey, gasLimit, '0x6C2C06790b3E3E3c38e12Ee22F8183b37a13EE55', 'DPX')
-        time.sleep(random.randint(3, 4))
+        first_func_list = [inch_swap_vst, inch_swap_usdc]
+        second_func_list = [web_gmx_buy_glb, web_balancer, web_vst_stake, web_radiant]
+        contracts = [['0x6C2C06790b3E3E3c38e12Ee22F8183b37a13EE55', 'GPX'], ['0x539bdE0d7Dbd336b79148AA742883198BBF60342', 'MAGIC'], ['0x6C2C06790b3E3E3c38e12Ee22F8183b37a13EE55', 'DPX']]
+
+        random.shuffle(first_func_list)
+        random.shuffle(second_func_list)
+        random.shuffle(contracts)
+
+        for func in first_func_list:
+            func(privatekey)
+            time.sleep(random.randint(min_time, max_time))
+        
+        for func in second_func_list:
+            func(privatekey, gasLimit)
+            time.sleep(random.randint(min_time, max_time))
+        
+        for item in contracts:
+            web_sushiswap(privatekey, gasLimit, *item)
+            time.sleep(random.randint(min_time, max_time))
+
         web_add_liq_eth_dpx(privatekey, gasLimit)
-        time.sleep(random.randint(3, 4))
+        time.sleep(random.randint(min_time, max_time))
         web_dopex_farm(privatekey, gasLimit)
 
-        time.sleep(random.randint(3, 5))
+        time.sleep(random.randint(min_time, max_time))
